@@ -1,0 +1,6 @@
+{
+  "name": "Deloxe HR Ecosystem",
+  "description": "Dual-portal ecosystem for Deloxe HR Consulting (Shop Books & My Library).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,140 @@
+{
+  "entities": {
+    "Partner": {
+      "title": "Partner",
+      "description": "Information about a registered referral partner",
+      "type": "object",
+      "properties": {
+        "partnerId": { "type": "string", "description": "Unique identifier for the partner" },
+        "referralCode": { "type": "string", "description": "Unique referral code, e.g. PRINCESS01" },
+        "name": { "type": "string", "description": "Full name of the partner" },
+        "email": { "type": "string", "format": "email", "description": "Email address of the partner" },
+        "rewardRate": { "type": "number", "description": "Percentage rate of commission, e.g. 0.20 for 20%" },
+        "payoutFrequency": { "type": "string", "enum": ["weekly", "monthly"], "description": "How often they receive payouts" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the partner document was created" }
+      },
+      "required": ["partnerId", "referralCode", "name", "email", "rewardRate", "payoutFrequency", "createdAt"]
+    },
+    "PartnerStats": {
+      "title": "PartnerStats",
+      "description": "Cumulative real-time metrics for a partner",
+      "type": "object",
+      "properties": {
+        "partnerId": { "type": "string", "description": "Associated partner ID" },
+        "totalClicks": { "type": "integer", "description": "Total link clicks generated" },
+        "totalPurchases": { "type": "integer", "description": "Total conversions" },
+        "totalCommission": { "type": "number", "description": "Cumulative earnings in local/primary currency" },
+        "balance": { "type": "number", "description": "Current unpaid commission balance" },
+        "lastUpdated": { "type": "string", "format": "date-time", "description": "Timestamp of the last metric update" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp of the last atomic update" }
+      },
+      "required": ["partnerId", "totalClicks", "totalPurchases", "totalCommission", "balance", "lastUpdated", "updatedAt"]
+    },
+    "ReferralClick": {
+      "title": "ReferralClick",
+      "description": "Record of a visitor landing via a referral link",
+      "type": "object",
+      "properties": {
+        "clickId": { "type": "string", "description": "Unique identifier of the click" },
+        "partnerId": { "type": "string", "description": "Referrer partner ID" },
+        "referralCode": { "type": "string", "description": "The referral code" },
+        "browser": { "type": "string", "description": "Visitor browser" },
+        "device": { "type": "string", "description": "Visitor device type (Desktop, Mobile, Tablet)" },
+        "country": { "type": "string", "description": "Visitor country" },
+        "ip": { "type": "string", "description": "Visitor IP address" },
+        "landingPage": { "type": "string", "description": "The URL path where they landed" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of the click" }
+      },
+      "required": ["clickId", "partnerId", "referralCode", "browser", "device", "country", "ip", "landingPage", "createdAt"]
+    },
+    "PartnerCommission": {
+      "title": "PartnerCommission",
+      "description": "Record of commission earned from a specific purchase",
+      "type": "object",
+      "properties": {
+        "commissionId": { "type": "string", "description": "Unique commission ID" },
+        "partnerId": { "type": "string", "description": "Referrer partner ID" },
+        "purchaseId": { "type": "string", "description": "Associated purchase ID in Supabase" },
+        "transactionId": { "type": "string", "description": "Associated payment gateway transaction ID" },
+        "email": { "type": "string", "format": "email", "description": "Purchaser email" },
+        "amountPaid": { "type": "number", "description": "Total purchase amount" },
+        "commissionAmount": { "type": "number", "description": "Calculated reward amount" },
+        "payoutStatus": { "type": "string", "enum": ["pending", "paid"], "description": "Current payout state" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the commission was created" }
+      },
+      "required": ["commissionId", "partnerId", "purchaseId", "transactionId", "email", "amountPaid", "commissionAmount", "payoutStatus", "createdAt"]
+    },
+    "PartnerApplication": {
+      "title": "PartnerApplication",
+      "description": "A request submitted by a user to join the referral partner program",
+      "type": "object",
+      "properties": {
+        "applicationId": { "type": "string", "description": "Unique ID of the application" },
+        "name": { "type": "string", "description": "Full name of the applicant" },
+        "email": { "type": "string", "format": "email", "description": "Email address of the applicant" },
+        "website": { "type": "string", "description": "Optional website or social link" },
+        "audience": { "type": "string", "description": "Brief description of their audience/promotional plans" },
+        "status": { "type": "string", "enum": ["pending", "approved", "denied"], "description": "Status of the application" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of submission" }
+      },
+      "required": ["applicationId", "name", "email", "audience", "status", "createdAt"]
+    },
+    "PayoutLog": {
+      "title": "PayoutLog",
+      "description": "Record of a payment payout cleared by an administrator",
+      "type": "object",
+      "properties": {
+        "payoutId": { "type": "string", "description": "Unique payout ID" },
+        "partnerId": { "type": "string", "description": "Target partner ID" },
+        "amountPaid": { "type": "number", "description": "The balance cleared" },
+        "payoutDate": { "type": "string", "format": "date-time", "description": "Timestamp of payout execution" },
+        "recordedBy": { "type": "string", "description": "Admin email who recorded the payout" }
+      },
+      "required": ["payoutId", "partnerId", "amountPaid", "payoutDate", "recordedBy"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app notifications for partners",
+      "type": "object",
+      "properties": {
+        "notificationId": { "type": "string", "description": "Unique ID of the notification" },
+        "partnerId": { "type": "string", "description": "Recipient partner ID" },
+        "title": { "type": "string", "description": "Title of the notification" },
+        "message": { "type": "string", "description": "Body message of the notification" },
+        "read": { "type": "boolean", "description": "Whether the notification has been read" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp of creation" }
+      },
+      "required": ["notificationId", "partnerId", "title", "message", "read", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/partners/{partnerId}": {
+      "schema": "Partner",
+      "description": "List of active referral partners"
+    },
+    "/partner_stats/{partnerId}": {
+      "schema": "PartnerStats",
+      "description": "Performance metrics per partner"
+    },
+    "/referral_clicks/{clickId}": {
+      "schema": "ReferralClick",
+      "description": "Log of clicks on referral links"
+    },
+    "/partner_commissions/{commissionId}": {
+      "schema": "PartnerCommission",
+      "description": "Log of all generated commission rewards"
+    },
+    "/partner_applications/{applicationId}": {
+      "schema": "PartnerApplication",
+      "description": "Requests from users to join the partner program"
+    },
+    "/payout_logs/{payoutId}": {
+      "schema": "PayoutLog",
+      "description": "Logs of clears and payouts to partners"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "In-app notifications for partners"
+    }
+  }
+}

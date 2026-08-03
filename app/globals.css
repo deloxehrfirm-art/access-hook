@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono&display=swap');
+
+@layer base {
+  body {
+    @apply bg-[rgb(38,47,44)] text-[#E0E6ED] font-sans antialiased;
+  }
+}
