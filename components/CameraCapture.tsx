@@ -162,8 +162,19 @@ export default function CameraCapture({ onPhotoSelected, existingUrl, showToast 
     setLoading(true);
     try {
       const supabase = getSupabase();
+      
+      let userId = '';
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          userId = user.id;
+        }
+      } catch (e) {
+        console.warn('Could not get auth user:', e);
+      }
+
       const ext = file.name.split('.').pop() || 'jpg';
-      const fileName = `passport-${crypto.randomUUID()}.${ext}`;
+      const fileName = userId ? `${userId}/passport-${crypto.randomUUID()}.${ext}` : `passport-${crypto.randomUUID()}.${ext}`;
 
       const { error: uploadErr } = await supabase.storage.from('profile-pictures').upload(fileName, file, {
         cacheControl: '3600',

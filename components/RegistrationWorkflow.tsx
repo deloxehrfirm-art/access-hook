@@ -364,8 +364,19 @@ export default function RegistrationWorkflow({ initialBookCode = '' }: { initial
     try {
       showToast(`Uploading ${file.name}...`, 'info');
       const supabase = getSupabase();
+      
+      let userId = createdUser?.id || '';
+      if (!userId) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user?.id) userId = user.id;
+        } catch (e) {
+          console.warn('Could not retrieve current user for upload:', e);
+        }
+      }
+
       const ext = file.name.split('.').pop() || 'pdf';
-      const fileName = `${targetKey}-${crypto.randomUUID()}.${ext}`;
+      const fileName = userId ? `${userId}/${targetKey}-${crypto.randomUUID()}.${ext}` : `${targetKey}-${crypto.randomUUID()}.${ext}`;
 
       const { error: uploadErr } = await supabase.storage.from(bucket).upload(fileName, file, { upsert: true });
 
