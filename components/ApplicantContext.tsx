@@ -80,15 +80,30 @@ export const ApplicantProvider = ({ children }: { children: ReactNode }) => {
   const fetchAllData = async (userId: string) => {
     const supabase = getSupabase();
     
-    // Fetch applicant
-    const { data: applicantData, error: applicantError } = await supabase
+    // Fetch applicant by user_id
+    let { data: applicantData, error: applicantError } = await supabase
         .from('applicants')
         .select('*')
         .eq('user_id', userId)
         .maybeSingle();
+
+    // Fallback: If not found by user_id, check session user email
+    if (!applicantData && !applicantError) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.email) {
+        const { data: appByEmail } = await supabase
+          .from('applicants')
+          .select('*')
+          .eq('email', session.user.email)
+          .maybeSingle();
+        if (appByEmail) {
+          applicantData = appByEmail;
+        }
+      }
+    }
     
     if (applicantError) {
-        console.error('Supabase error fetching applicant:', applicantError);
+        console.warn('Supabase notice fetching applicant:', applicantError);
     }
 
     if (applicantData) {
@@ -124,7 +139,6 @@ export const ApplicantProvider = ({ children }: { children: ReactNode }) => {
             }
         }
     } else {
-        console.error('Error fetching applicant data:', applicantError);
         setApplicant(null);
     }
     setIsLoading(false);
