@@ -2,6 +2,40 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServiceSupabase } from '@/lib/supabase';
 import nodemailer from 'nodemailer';
 
+function parseDateOrNull(val: any): string | null {
+  if (val === undefined || val === null) return null;
+  const str = String(val).trim();
+  if (!str || str === '' || str === 'null' || str === 'undefined') return null;
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+    return str.slice(0, 10);
+  }
+  const d = new Date(str);
+  if (!isNaN(d.getTime())) {
+    return d.toISOString().slice(0, 10);
+  }
+  return null;
+}
+
+function parseUuidOrNull(val: any): string | null {
+  if (val === undefined || val === null) return null;
+  const str = String(val).trim();
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)) {
+    return str;
+  }
+  return null;
+}
+
+function parseIntOrNull(val: any): number | null {
+  if (val === undefined || val === null || val === '') return null;
+  const num = Number(val);
+  return isNaN(num) ? null : Math.round(num);
+}
+
+function parseTextOrEmpty(val: any, defaultVal = ''): string {
+  if (val === undefined || val === null) return defaultVal;
+  return String(val).trim();
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { email, userId, bookCodeId, formData } = await req.json();
@@ -24,30 +58,30 @@ export async function POST(req: NextRequest) {
 
     const finalApplicantData = {
       email: cleanEmail,
-      user_id: userId || null,
-      full_name: formData?.full_name || '',
-      gender: formData?.gender || '',
-      date_of_birth: formData?.date_of_birth || '',
-      phone_number: formData?.phone_number || '',
-      residential_address: formData?.residential_address || '',
-      institution_name: formData?.institution_name || '',
-      course_of_study: formData?.course_of_study || '',
-      degree: formData?.degree || '',
-      graduation_year: Number(formData?.graduation_year) || new Date().getFullYear(),
-      current_stage: formData?.current_stage || 'Final Year Student',
-      nysc_completion_date: formData?.nysc_completion_date || null,
-      profile_picture: formData?.profile_picture || formData?.passport_photo_url || '',
-      passport_photo_url: formData?.passport_photo_url || formData?.profile_picture || '',
-      educational_cert_url: formData?.educational_cert_url || '',
-      cv_resume_url: formData?.cv_resume_url || '',
-      nysc_cert_url: formData?.nysc_cert_url || null,
-      skills: formData?.skills || [],
-      competitive_edge: formData?.competitive_edge || '',
-      preferred_industry: formData?.preferred_industry || '',
-      preferred_role: formData?.preferred_role || '',
-      preferred_location: formData?.preferred_location || '',
-      availability: formData?.availability || '',
-      used_book_code_id: bookCodeId || formData?.used_book_code_id || null,
+      user_id: parseUuidOrNull(userId),
+      full_name: parseTextOrEmpty(formData?.full_name),
+      gender: parseTextOrEmpty(formData?.gender) || null,
+      date_of_birth: parseDateOrNull(formData?.date_of_birth),
+      phone_number: parseTextOrEmpty(formData?.phone_number),
+      residential_address: parseTextOrEmpty(formData?.residential_address),
+      institution_name: parseTextOrEmpty(formData?.institution_name),
+      course_of_study: parseTextOrEmpty(formData?.course_of_study),
+      degree: parseTextOrEmpty(formData?.degree),
+      graduation_year: parseIntOrNull(formData?.graduation_year) || new Date().getFullYear(),
+      current_stage: parseTextOrEmpty(formData?.current_stage, 'Final Year Student'),
+      nysc_completion_date: parseDateOrNull(formData?.nysc_completion_date),
+      profile_picture: parseTextOrEmpty(formData?.profile_picture) || parseTextOrEmpty(formData?.passport_photo_url),
+      passport_photo_url: parseTextOrEmpty(formData?.passport_photo_url) || parseTextOrEmpty(formData?.profile_picture),
+      educational_cert_url: parseTextOrEmpty(formData?.educational_cert_url),
+      cv_resume_url: parseTextOrEmpty(formData?.cv_resume_url),
+      nysc_cert_url: parseTextOrEmpty(formData?.nysc_cert_url) || null,
+      skills: Array.isArray(formData?.skills) ? formData.skills : [],
+      competitive_edge: parseTextOrEmpty(formData?.competitive_edge),
+      preferred_industry: parseTextOrEmpty(formData?.preferred_industry),
+      preferred_role: parseTextOrEmpty(formData?.preferred_role),
+      preferred_location: parseTextOrEmpty(formData?.preferred_location),
+      availability: parseTextOrEmpty(formData?.availability),
+      used_book_code_id: parseUuidOrNull(bookCodeId || formData?.used_book_code_id),
       status_tag: statusTag,
       progress_percent: 100,
       onboarding_step: 9,

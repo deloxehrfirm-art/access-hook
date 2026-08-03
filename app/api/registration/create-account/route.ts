@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServiceSupabase } from '@/lib/supabase';
 import crypto from 'crypto';
 
+function parseUuidOrNull(val: any): string | null {
+  if (val === undefined || val === null) return null;
+  const str = String(val).trim();
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)) {
+    return str;
+  }
+  return null;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { full_name, email, phone_number, password, bookCodeId } = await req.json();
@@ -138,11 +147,11 @@ export async function POST(req: NextRequest) {
 
     // Step 4: Create Initial Applicant Record
     const initialApplicant = {
-      user_id: userId,
+      user_id: parseUuidOrNull(userId),
       full_name: cleanName,
       email: cleanEmail,
       phone_number: cleanPhone,
-      used_book_code_id: bookCodeId,
+      used_book_code_id: parseUuidOrNull(bookCodeId),
       onboarding_step: 1,
       progress_percent: 11,
       status_tag: 'Draft',

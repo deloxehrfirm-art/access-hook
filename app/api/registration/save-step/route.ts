@@ -1,6 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServiceSupabase } from '@/lib/supabase';
 
+function parseDateOrNull(val: any): string | null {
+  if (val === undefined || val === null) return null;
+  const str = String(val).trim();
+  if (!str || str === '' || str === 'null' || str === 'undefined') return null;
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+    return str.slice(0, 10);
+  }
+  const d = new Date(str);
+  if (!isNaN(d.getTime())) {
+    return d.toISOString().slice(0, 10);
+  }
+  return null;
+}
+
+function parseUuidOrNull(val: any): string | null {
+  if (val === undefined || val === null) return null;
+  const str = String(val).trim();
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)) {
+    return str;
+  }
+  return null;
+}
+
+function parseIntOrNull(val: any): number | null {
+  if (val === undefined || val === null || val === '') return null;
+  const num = Number(val);
+  return isNaN(num) ? null : Math.round(num);
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { email, userId, step, formData } = await req.json();
@@ -34,7 +63,8 @@ export async function POST(req: NextRequest) {
       progress_percent: progressPercent,
     };
 
-    if (userId) applicantUpdates.user_id = userId;
+    const validUserId = parseUuidOrNull(userId);
+    if (validUserId) applicantUpdates.user_id = validUserId;
 
     // Map known form fields
     const allowedKeys = [
@@ -48,7 +78,15 @@ export async function POST(req: NextRequest) {
     if (formData && typeof formData === 'object') {
       for (const key of allowedKeys) {
         if (formData[key] !== undefined) {
-          applicantUpdates[key] = formData[key];
+          let val = formData[key];
+          if (key === 'date_of_birth' || key === 'nysc_completion_date') {
+            val = parseDateOrNull(val);
+          } else if (key === 'used_book_code_id') {
+            val = parseUuidOrNull(val);
+          } else if (key === 'graduation_year') {
+            val = parseIntOrNull(val);
+          }
+          applicantUpdates[key] = val;
         }
       }
     }
