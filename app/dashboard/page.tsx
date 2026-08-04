@@ -61,7 +61,8 @@ export default function DashboardPage() {
   }, [applicant]);
 
   // Load Certificate if stageInt >= 5 (implies final exam submitted)
-  const stageInt = applicant ? (parseInt(applicant.current_stage) || 1) : 1;
+  const rawStage = applicant ? parseInt(applicant.current_stage, 10) : 1;
+  const stageInt = isNaN(rawStage) || rawStage < 3 ? 3 : rawStage;
   
   useEffect(() => {
     if (!applicant || stageInt < 5) return;
