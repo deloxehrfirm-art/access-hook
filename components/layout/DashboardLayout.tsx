@@ -3,9 +3,29 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
-import { LayoutDashboard, BookOpen, GraduationCap, Briefcase, User, Settings, LogOut, ChevronDown, Lock, Loader2, Menu, X, Award, ChevronRight, ChevronLeft, MoreHorizontal, Share2 } from 'lucide-react';
+import { LayoutDashboard, BookOpen, GraduationCap, Briefcase, User, Settings, LogOut, ChevronDown, Lock, Loader2, X, Award, ChevronRight, ChevronLeft, Share2 } from 'lucide-react';
 import { getSupabase } from '@/lib/supabase';
 import { useApplicant } from '@/components/ApplicantContext';
+
+export function CustomSidebarIcon({ size = 20, className = '' }: { size?: number; className?: string }) {
+  return (
+    <svg 
+      width={size} 
+      height={size} 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2.5" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      className={className}
+    >
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="12" x2="13" y2="12" />
+      <line x1="3" y1="18" x2="21" y2="18" />
+    </svg>
+  );
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -55,9 +75,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Desktop Sidebar */}
       <aside className={`hidden md:flex flex-col border-r border-[#dbf0de]/10 bg-[#1a2321] p-4 transition-all duration-300 ${isSidebarCollapsed ? 'w-20' : 'w-64'}`}>
         <div className="flex items-center justify-between mb-8 px-2">
-            <h2 className={`text-lg font-bold text-[#dbf0de] ${isSidebarCollapsed ? 'hidden' : 'block'}`}>Deloxe</h2>
-            <button onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} className="text-gray-400 hover:text-[#dbf0de] transition-colors">
-              {isSidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            <div className="flex items-center gap-2.5">
+              <CustomSidebarIcon size={20} className="text-[#DFFF00]" />
+              <h2 className={`text-lg font-bold text-[#dbf0de] ${isSidebarCollapsed ? 'hidden' : 'block'}`}>Deloxe</h2>
+            </div>
+            <button 
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+              className="p-1.5 text-gray-400 hover:text-[#dbf0de] transition-colors rounded-lg hover:bg-white/5"
+              title="Toggle Sidebar"
+            >
+              <CustomSidebarIcon size={18} />
             </button>
         </div>
         <div className="flex-1">
@@ -76,7 +103,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex-1 flex flex-col min-w-0 pb-20 md:pb-0">
         {/* Top Bar */}
         <header className="border-b border-[#dbf0de]/10 bg-[#1a2321]/80 backdrop-blur-md p-4 flex justify-between items-center sticky top-0 z-30">
-          <h1 className="text-lg font-semibold text-[#dbf0de]">Deloxe</h1>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => {
+                if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                  setSidebarOpen(!sidebarOpen);
+                } else {
+                  setIsSidebarCollapsed(!isSidebarCollapsed);
+                }
+              }}
+              className="p-1.5 rounded-lg text-gray-300 hover:text-[#DFFF00] hover:bg-white/5 transition-colors flex items-center justify-center"
+              title="Toggle Sidebar"
+            >
+              <CustomSidebarIcon size={20} />
+            </button>
+            <h1 className="text-lg font-semibold text-[#dbf0de]">Deloxe</h1>
+          </div>
           <div className="relative">
             <button 
               onClick={() => setProfileOpen(!profileOpen)} 
@@ -115,8 +157,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <span className="text-[10px] font-medium">{item.label}</span>
             </Link>
         ))}
-        <button onClick={() => setSidebarOpen(true)} className="flex flex-col items-center gap-1 p-2 text-gray-400">
-            <MoreHorizontal size={22} />
+        <button onClick={() => setSidebarOpen(true)} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-[#DFFF00] transition-colors">
+            <CustomSidebarIcon size={20} />
             <span className="text-[10px] font-medium">Menu</span>
         </button>
       </nav>
@@ -139,8 +181,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {sidebarOpen && (
           <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} className="md:hidden fixed inset-y-0 right-0 z-50 w-3/4 bg-[#1a2321] shadow-2xl p-6 border-l border-[#dbf0de]/10">
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-lg font-bold">Menu</h2>
-              <button onClick={() => setSidebarOpen(false)}><X /></button>
+              <div className="flex items-center gap-2">
+                <CustomSidebarIcon size={20} className="text-[#DFFF00]" />
+                <h2 className="text-lg font-bold text-white">Menu</h2>
+              </div>
+              <button onClick={() => setSidebarOpen(false)} className="text-gray-400 hover:text-white p-1"><X size={20} /></button>
             </div>
             <NavLinks navItems={navItems} pathname={pathname} isCollapsed={false} isLocked={isLocked} setLockedModal={setLockedModal} isMobile={true} />
           </motion.div>
