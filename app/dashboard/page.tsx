@@ -223,9 +223,9 @@ export default function DashboardPage() {
               </div>
               
               <div className="flex items-center justify-between text-[11px] font-bold text-gray-400">
-                <span>Stage {Math.min(5, Math.floor(journeyPercent / 20) + 1)}/5 Active</span>
+                <span>Stage {Math.min(13, stageInt)}/13 Active</span>
                 <span className="text-[#DFFF00]">
-                  {stageInt >= 6 ? 'All stages completed!' : 'Keep advancing!'}
+                  {stageInt >= 6 ? 'Preparation Phase Completed!' : 'Keep advancing!'}
                 </span>
               </div>
             </div>
@@ -282,7 +282,7 @@ export default function DashboardPage() {
                 <span className="w-1.5 h-6 bg-[#DFFF00] rounded-full inline-block"></span>
                 Sequential Placement Journey
               </h3>
-              <span className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">5 Stages</span>
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">13 Stages</span>
             </div>
 
             {/* Stage 1: Profile Creation */}
@@ -565,7 +565,7 @@ export default function DashboardPage() {
               const isLocked = stageInt < 6;
               
               return (
-                <div className="relative pl-8 md:pl-12">
+                <div className="relative pl-8 md:pl-12 pb-8 border-l border-white/5">
                   {/* Connector Node */}
                   <div className={`absolute left-0 top-1.5 -translate-x-1/2 w-6 h-6 rounded-full border-4 border-[#1a2321] flex items-center justify-center text-[10px] font-black shadow-lg z-10 ${
                     !isLocked ? 'bg-[#DFFF00] text-[#1a2321] shadow-[0_0_15px_rgba(223,255,0,0.5)] border-white' : 'bg-[#1a2321] border-gray-700 text-gray-500'
@@ -605,6 +605,72 @@ export default function DashboardPage() {
                 </div>
               );
             })()}
+
+            {/* Stages 07 to 13: Locked Post-Job Pool Stages */}
+            {[
+              {
+                num: '07',
+                title: 'Engaged',
+                desc: 'Active employer engagement, corporate interview matching, and official candidate selection step.'
+              },
+              {
+                num: '08',
+                title: 'Onboarding',
+                desc: 'Worksite orientation, documentation verification, and placement onboarding.'
+              },
+              {
+                num: '09',
+                title: '3-Month Review',
+                desc: 'First quarterly performance assessment and employer feedback review.'
+              },
+              {
+                num: '10',
+                title: '6-Month Review',
+                desc: 'Mid-term placement review, skill milestone evaluation, and career progression check.'
+              },
+              {
+                num: '11',
+                title: 'Final Review',
+                desc: 'Comprehensive end-of-placement performance appraisal and corporate graduation audit.'
+              },
+              {
+                num: '12',
+                title: 'Testimonial',
+                desc: 'Submission of candidate exit interview, placement success feedback, and career story.'
+              },
+              {
+                num: '13',
+                title: 'Completion',
+                desc: 'Official program completion, alumni network induction, and full certification release.'
+              }
+            ].map((lockedStage, idx, arr) => {
+              const isLast = idx === arr.length - 1;
+              return (
+                <div key={lockedStage.num} className={`relative pl-8 md:pl-12 ${isLast ? '' : 'pb-8 border-l border-white/5'}`}>
+                  {/* Connector Node */}
+                  <div className="absolute left-0 top-1.5 -translate-x-1/2 w-6 h-6 rounded-full border-4 border-[#1a2321] flex items-center justify-center text-[10px] font-black shadow-lg z-10 bg-[#1a2321] border-gray-700 text-gray-500">
+                    <Lock size={10} className="text-gray-500" />
+                  </div>
+                  
+                  <div className="bg-[#26312f] rounded-[24px] p-6 border border-white/5 shadow-md opacity-50 transition-all duration-300">
+                    <div className="flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center">
+                      <div className="space-y-1 text-left">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] font-bold text-gray-500 tracking-wider uppercase">Stage {lockedStage.num}</span>
+                          <h4 className="text-base font-bold text-white">{lockedStage.title}</h4>
+                          <span className="px-2 py-0.5 bg-white/5 text-gray-500 border border-white/5 rounded-full text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
+                            <Lock size={8} /> Locked
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-400 max-w-lg leading-relaxed">
+                          {lockedStage.desc}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
 
           </div>
         </div>
