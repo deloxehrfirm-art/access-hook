@@ -12,6 +12,16 @@ export async function POST(req: NextRequest) {
     const cleanCode = code.trim();
     const supabase = getServiceSupabase();
 
+    //Test the service key 
+    const { data: testData, error: testError } = await supabase
+    .from('book_codes')
+    .select('id')
+    .limit(1);
+
+   console.log('SERVICE SUPABASE TEST:', {
+   data: testData,
+   error: testError,
+  });
     // Query book_codes table by code_string or code
     const cleanCodeEscaped = cleanCode.replace(/"/g, '');
     let bookCode = null;
