@@ -47,10 +47,19 @@ export async function POST(req: NextRequest) {
     const cleanEmail = String(email).trim().toLowerCase();
     const supabase = getServiceSupabase();
 
+    const { data: existingApp } = await supabase
+      .from('applicants')
+      .select('current_stage')
+      .eq('email', cleanEmail)
+      .maybeSingle();
+
+    const currentDashboardStage = existingApp?.current_stage && !isNaN(Number(existingApp.current_stage)) ? existingApp.current_stage : '1';
+    const careerStage = parseTextOrEmpty(formData?.current_ac_stage || formData?.current_stage, 'Final Year Student');
+
     let statusTag = 'Student';
-    if (formData?.current_stage === 'Completed NYSC') {
+    if (careerStage === 'Completed NYSC') {
       statusTag = 'Job-Ready';
-    } else if (formData?.current_stage === 'Waiting for NYSC' || formData?.current_stage === 'Currently Serving (NYSC)' || formData?.current_stage === 'Currently Serving NYSC') {
+    } else if (careerStage === 'Waiting for NYSC' || careerStage === 'Currently Serving (NYSC)' || careerStage === 'Currently Serving NYSC') {
       statusTag = 'Graduate';
     }
 
@@ -68,7 +77,8 @@ export async function POST(req: NextRequest) {
       course_of_study: parseTextOrEmpty(formData?.course_of_study),
       degree: parseTextOrEmpty(formData?.degree),
       graduation_year: parseIntOrNull(formData?.graduation_year) || new Date().getFullYear(),
-      current_stage: parseTextOrEmpty(formData?.current_stage, 'Final Year Student'),
+      current_ac_stage: careerStage,
+      current_stage: currentDashboardStage,
       nysc_completion_date: parseDateOrNull(formData?.nysc_completion_date),
       profile_picture: parseTextOrEmpty(formData?.profile_picture) || parseTextOrEmpty(formData?.passport_photo_url),
       passport_photo_url: parseTextOrEmpty(formData?.passport_photo_url) || parseTextOrEmpty(formData?.profile_picture),
