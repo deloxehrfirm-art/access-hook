@@ -18,17 +18,21 @@ export async function uploadCertificate(
   const storagePath = `certificates/${currentYear}/${certificateId}.pdf`;
 
   try {
-    // 1. Ensure the bucket exists (try to create if it doesn't, ignoring errors)
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const hasBucket = buckets?.some(b => b.name === bucketName);
-    
-    if (!hasBucket) {
-      console.log(`Bucket ${bucketName} not found, attempting to create it...`);
-      await supabase.storage.createBucket(bucketName, {
-        public: true,
-        fileSizeLimit: 10485760, // 10MB
-        allowedMimeTypes: ['application/pdf', 'image/png']
-      });
+    // 1. Ensure the bucket exists (try to create if it doesn't, ignoring errors if lacking service role)
+    try {
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const hasBucket = buckets?.some(b => b.name === bucketName);
+      
+      if (!hasBucket) {
+        console.log(`Bucket ${bucketName} not found, attempting to create it...`);
+        await supabase.storage.createBucket(bucketName, {
+          public: true,
+          fileSizeLimit: 10485760, // 10MB
+          allowedMimeTypes: ['application/pdf', 'image/png']
+        });
+      }
+    } catch (bucketErr) {
+      console.warn('Bucket check/creation skipped or failed (proceeding with upload):', bucketErr);
     }
 
     // 2. Upload the file
