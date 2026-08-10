@@ -21,7 +21,7 @@ export const FormSchema = z.object({
   graduation_year: z.preprocess((val) => Number(val), z.number().int().min(1900).max(2100)),
 
   // Step 5
-  current_stage: z.enum(['Final Year Student', 'Waiting for NYSC', 'Currently Serving (NYSC)', 'Completed NYSC']),
+  current_ac_stage: z.enum(['Final Year Student', 'Waiting for NYSC', 'Currently Serving (NYSC)', 'Completed NYSC']),
 
   // Step 6 (These will store URLs after upload)
   profile_picture: z.string().optional(),
