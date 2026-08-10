@@ -54,7 +54,7 @@ export default function RegistrationWorkflow({ initialBookCode = '' }: { initial
     course_of_study: '',
     degree: '',
     graduation_year: new Date().getFullYear(),
-    current_stage: 'Final Year Student',
+    current_ac_stage: 'Final Year Student',
     nysc_completion_date: '',
     profile_picture: '',
     passport_photo_url: '',
@@ -313,7 +313,7 @@ export default function RegistrationWorkflow({ initialBookCode = '' }: { initial
         showToast('Educational certificate and CV / Resume are required.', 'warning');
         return;
       }
-      if (profileData.current_stage === 'Completed NYSC' && !profileData.nysc_cert_url) {
+      if (profileData.current_ac_stage === 'Completed NYSC' && !profileData.nysc_cert_url) {
         showToast('NYSC Certificate is required for applicants who completed NYSC.', 'warning');
         return;
       }
@@ -818,9 +818,9 @@ export default function RegistrationWorkflow({ initialBookCode = '' }: { initial
                     <button
                       key={stageOpt.id}
                       type="button"
-                      onClick={() => setProfileData({ ...profileData, current_stage: stageOpt.id })}
+                      onClick={() => setProfileData({ ...profileData, current_ac_stage: stageOpt.id })}
                       className={`p-5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                        profileData.current_stage === stageOpt.id
+                        profileData.current_ac_stage === stageOpt.id
                           ? 'bg-[#dbf0de]/15 border-[#dbf0de] text-[#dbf0de] shadow-lg'
                           : 'bg-[#1a2321] border-white/10 text-gray-300 hover:border-white/30'
                       }`}
@@ -831,9 +831,9 @@ export default function RegistrationWorkflow({ initialBookCode = '' }: { initial
                       </div>
                       <div className="mt-4 flex justify-end">
                         <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                          profileData.current_stage === stageOpt.id ? 'border-[#dbf0de] bg-[#dbf0de] text-[#1a2321]' : 'border-gray-500'
+                          profileData.current_ac_stage === stageOpt.id ? 'border-[#dbf0de] bg-[#dbf0de] text-[#1a2321]' : 'border-gray-500'
                         }`}>
-                          {profileData.current_stage === stageOpt.id && <Check className="w-3.5 h-3.5 font-bold" />}
+                          {profileData.current_ac_stage === stageOpt.id && <Check className="w-3.5 h-3.5 font-bold" />}
                         </div>
                       </div>
                     </button>
@@ -909,7 +909,7 @@ export default function RegistrationWorkflow({ initialBookCode = '' }: { initial
                   </div>
 
                   {/* Conditional NYSC Certificate */}
-                  {profileData.current_stage === 'Completed NYSC' && (
+                  {profileData.current_ac_stage === 'Completed NYSC' && (
                     <div className="p-4 bg-[#1a2321] rounded-2xl border border-white/10 space-y-3">
                       <div>
                         <label className="text-xs font-semibold text-gray-300 block">NYSC Discharge Certificate *</label>
@@ -1117,7 +1117,7 @@ export default function RegistrationWorkflow({ initialBookCode = '' }: { initial
                       <h4 className="text-xs font-bold text-[#dbf0de] uppercase tracking-wider mb-2">Education & Stage</h4>
                       <p className="text-xs text-gray-300">Institution: <span className="text-white">{profileData.institution_name}</span></p>
                       <p className="text-xs text-gray-300">Course & Degree: <span className="text-white">{profileData.course_of_study} ({profileData.degree})</span></p>
-                      <p className="text-xs text-gray-300">Career Stage: <span className="text-white font-semibold">{profileData.current_stage}</span></p>
+                      <p className="text-xs text-gray-300">Career Stage: <span className="text-white font-semibold">{profileData.current_ac_stage}</span></p>
                     </div>
                     <button type="button" onClick={() => setOnboardingStep(2)} className="text-xs text-[#dbf0de] font-semibold flex items-center gap-1 hover:underline">
                       <Edit3 className="w-3.5 h-3.5" /> Edit
