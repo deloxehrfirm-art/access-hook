@@ -199,7 +199,8 @@ export default function SettingsPage() {
               { label: 'Institution', value: applicant.institution_name },
               { label: 'Course of Study', value: applicant.course_of_study },
               { label: 'Graduation Year', value: applicant.graduation_year },
-              { label: 'Current Stage', value: applicant.current_stage },
+              { label: 'Career / Academy Stage (current_ac_stage)', value: applicant.current_ac_stage || 'Final Year Student' },
+              { label: 'Dashboard Roadmap Stage (current_stage)', value: `Phase ${applicant.current_stage || '1'}` },
               { label: 'Skills', value: formatSkills(applicant.skills) },
               { label: 'Competitive Edge', value: applicant.competitive_edge || 'N/A' }
             ].map((item) => (
