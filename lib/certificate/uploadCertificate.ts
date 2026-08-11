@@ -18,17 +18,21 @@ export async function uploadCertificate(
   const storagePath = `certificates/${currentYear}/${certificateId}.pdf`;
 
   try {
-    // 1. Ensure the bucket exists (try to create if it doesn't, ignoring errors)
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const hasBucket = buckets?.some(b => b.name === bucketName);
-    
-    if (!hasBucket) {
-      console.log(`Bucket ${bucketName} not found, attempting to create it...`);
-      await supabase.storage.createBucket(bucketName, {
-        public: true,
-        fileSizeLimit: 10485760, // 10MB
-        allowedMimeTypes: ['application/pdf', 'image/png']
-      });
+    // 1. Ensure the bucket exists (try to create if it doesn't, ignoring errors if lacking service role)
+    try {
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const hasBucket = buckets?.some(b => b.name === bucketName);
+      
+      if (!hasBucket) {
+        console.log(`Bucket ${bucketName} not found, attempting to create it...`);
+        await supabase.storage.createBucket(bucketName, {
+          public: true,
+          fileSizeLimit: 10485760, // 10MB
+          allowedMimeTypes: ['application/pdf', 'image/png']
+        });
+      }
+    } catch (bucketErr) {
+      console.warn('Bucket check/creation skipped or failed (proceeding with upload):', bucketErr);
     }
 
     // 2. Upload the file
@@ -40,7 +44,15 @@ export async function uploadCertificate(
       });
 
     if (uploadError) {
-      throw uploadError;
+      console.warn('Storage upload error (using fallback data URL):', uploadError);
+      const base64Pdf = Buffer.isBuffer(fileBuffer) 
+        ? fileBuffer.toString('base64') 
+        : Buffer.from(fileBuffer).toString('base64');
+      const publicUrl = `data:application/pdf;base64,${base64Pdf}`;
+      return {
+        publicUrl,
+        storagePath: `fallback/${certificateId}.pdf`,
+      };
     }
 
     // 3. Get the public URL
@@ -53,7 +65,14 @@ export async function uploadCertificate(
       storagePath,
     };
   } catch (err: any) {
-    console.error('Failed to upload certificate to Supabase Storage:', err);
-    throw new Error(`Upload failed: ${err.message || err}`);
+    console.warn('Failed to upload certificate to Supabase Storage, using data URI fallback:', err);
+    const base64Pdf = Buffer.isBuffer(fileBuffer) 
+      ? fileBuffer.toString('base64') 
+      : Buffer.from(fileBuffer).toString('base64');
+    const publicUrl = `data:application/pdf;base64,${base64Pdf}`;
+    return {
+      publicUrl,
+      storagePath: `fallback/${certificateId}.pdf`,
+    };
   }
 }

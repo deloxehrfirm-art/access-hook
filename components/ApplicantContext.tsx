@@ -27,7 +27,8 @@ export interface Applicant {
   preferred_role: string;
   preferred_location: string;
   progress_percent: number;
-  current_stage: string; // The database column is text
+  current_stage: string; // Dashboard roadmap stage ('1', '2', etc.)
+  current_ac_stage?: string; // Academy career stage
   status_tag: string;
   used_book_code_id: string;
 }
@@ -77,15 +78,23 @@ export const ApplicantProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchAllData = async (userId: string) => {
+  const fetchAllData = async (userId?: string | null) => {
     const supabase = getSupabase();
     
-    // Fetch applicant by user_id
-    let { data: applicantData, error: applicantError } = await supabase
-        .from('applicants')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
+    let applicantData = null;
+    let applicantError = null;
+
+    const validUserId = userId && userId !== 'null' && userId !== 'undefined' ? userId : null;
+
+    if (validUserId) {
+      const res = await supabase
+          .from('applicants')
+          .select('*')
+          .eq('user_id', validUserId)
+          .maybeSingle();
+      applicantData = res.data;
+      applicantError = res.error;
+    }
 
     // Fallback: If not found by user_id, check session user email
     if (!applicantData && !applicantError) {
@@ -110,6 +119,7 @@ export const ApplicantProvider = ({ children }: { children: ReactNode }) => {
         setApplicant({
             ...applicantData,
             current_stage: (applicantData.current_stage || '1').toString(),
+            current_ac_stage: applicantData.current_ac_stage || 'Final Year Student',
         } as Applicant);
         
         // Fetch modules

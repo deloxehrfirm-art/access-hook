@@ -44,12 +44,12 @@ export async function POST(req: NextRequest) {
 
     const supabase = getServiceSupabase();
 
-    // Determine status tag based on current_stage if present
+    const careerStage = formData?.current_ac_stage || formData?.current_stage;
     let statusTag = undefined;
-    if (formData?.current_stage) {
-      if (formData.current_stage === 'Completed NYSC') {
+    if (careerStage) {
+      if (careerStage === 'Completed NYSC') {
         statusTag = 'Job-Ready';
-      } else if (formData.current_stage === 'Waiting for NYSC' || formData.current_stage === 'Currently Serving (NYSC)' || formData.current_stage === 'Currently Serving NYSC') {
+      } else if (careerStage === 'Waiting for NYSC' || careerStage === 'Currently Serving (NYSC)' || careerStage === 'Currently Serving NYSC') {
         statusTag = 'Graduate';
       } else {
         statusTag = 'Student';
@@ -63,13 +63,27 @@ export async function POST(req: NextRequest) {
       progress_percent: progressPercent,
     };
 
+    if (careerStage) {
+      applicantUpdates.current_ac_stage = careerStage;
+    }
+
+    const { data: existingApp } = await supabase
+      .from('applicants')
+      .select('current_stage')
+      .eq('email', cleanEmail)
+      .maybeSingle();
+
+    if (!existingApp?.current_stage) {
+      applicantUpdates.current_stage = '1';
+    }
+
     const validUserId = parseUuidOrNull(userId);
     if (validUserId) applicantUpdates.user_id = validUserId;
 
     // Map known form fields
     const allowedKeys = [
       'full_name', 'gender', 'date_of_birth', 'phone_number', 'residential_address',
-      'institution_name', 'course_of_study', 'degree', 'graduation_year', 'current_stage',
+      'institution_name', 'course_of_study', 'degree', 'graduation_year', 'current_ac_stage',
       'nysc_completion_date', 'profile_picture', 'passport_photo_url', 'educational_cert_url',
       'cv_resume_url', 'nysc_cert_url', 'skills', 'competitive_edge', 'preferred_industry',
       'preferred_role', 'preferred_location', 'availability', 'used_book_code_id'
