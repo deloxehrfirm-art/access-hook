@@ -333,7 +333,7 @@ export default function AIInterviewPage() {
 
         // Call Server API to transcribe & save
         const formData = new FormData();
-        formData.append('audio', videoBlob, 'audio.webm'); // Gemini accepts webm
+        formData.append('audio', videoBlob, 'audio.webm'); // Groq Whisper accepts webm
         formData.append('questionNumber', currentQuestion.number.toString());
         formData.append('questionText', currentQuestion.text);
         formData.append('videoUrl', videoUrl);
