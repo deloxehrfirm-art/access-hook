@@ -17,33 +17,65 @@ export async function GET(req: NextRequest) {
     // Query the certificates table
     const { data: cert, error } = await supabase
       .from('certificates')
-      .select('pdf_url, certificate_id')
-      .eq('certificate_id', certificateId)
+      .select('*')
+      .or(`certificate_id.eq.${certificateId},id.eq.${certificateId},applicant_id.eq.${certificateId}`)
       .maybeSingle();
 
-    if (error || !cert || !cert.pdf_url) {
-      console.error('Error finding certificate:', error);
-      return NextResponse.json({ error: 'Certificate not found' }, { status: 404 });
+    if (error) {
+      console.error('Error finding certificate in database:', error);
     }
 
-    // Fetch the PDF file
-    const response = await fetch(cert.pdf_url);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch PDF from storage: ${response.statusText}`);
+    if (!cert) {
+      return NextResponse.json({ error: `Certificate record '${certificateId}' not found in database.` }, { status: 404 });
     }
 
-    const pdfBuffer = await response.arrayBuffer();
+    const bucketName = 'allcertification';
+    let pdfBuffer: ArrayBuffer | null = null;
 
-    // Return the PDF with download headers
+    // 1. Primary retrieval: Download directly from allcertification storage bucket using real storage_path
+    if (cert.storage_path) {
+      const { data: fileData, error: downloadErr } = await supabase.storage
+        .from(bucketName)
+        .download(cert.storage_path);
+
+      if (!downloadErr && fileData) {
+        pdfBuffer = await fileData.arrayBuffer();
+      } else if (downloadErr) {
+        console.warn(`Storage download error for path '${cert.storage_path}':`, downloadErr.message);
+      }
+    }
+
+    // 2. Secondary fallback: Fetch via pdf_url if storage_path was not downloadable
+    if (!pdfBuffer && cert.pdf_url && cert.pdf_url.startsWith('http')) {
+      try {
+        const response = await fetch(cert.pdf_url);
+        if (response.ok) {
+          pdfBuffer = await response.arrayBuffer();
+        }
+      } catch (fetchErr) {
+        console.warn('Failed to fetch certificate via pdf_url:', fetchErr);
+      }
+    }
+
+    if (!pdfBuffer) {
+      return NextResponse.json({ 
+        error: `Certificate PDF file for '${certificateId}' was not found in storage bucket '${bucketName}'.` 
+      }, { status: 404 });
+    }
+
+    // Return the PDF with proper content headers
     const viewInline = searchParams.get('view') === 'true';
+    const filename = `${cert.certificate_id || 'certificate'}.pdf`;
     const contentDisposition = viewInline 
-      ? `inline; filename="${cert.certificate_id}.pdf"`
-      : `attachment; filename="${cert.certificate_id}.pdf"`;
+      ? `inline; filename="${filename}"`
+      : `attachment; filename="${filename}"`;
 
     return new NextResponse(pdfBuffer, {
+      status: 200,
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': contentDisposition,
+        'Cache-Control': 'public, max-age=3600',
       },
     });
   } catch (err: any) {

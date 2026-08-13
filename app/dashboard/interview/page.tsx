@@ -305,31 +305,51 @@ export default function AIInterviewPage() {
 
     try {
       let videoUrl = '';
-      const userId = user?.id || applicant?.user_id || '';
-      const filename = `${userId}/${interview.id}_q${currentQuestion.number}.webm`;
+      const supabase = getSupabase();
+
+      // Retrieve current authenticated Supabase user ID to strictly satisfy auth.uid() folder RLS policy
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      let authenticatedUserId = authUser?.id || user?.id || applicant?.user_id;
+
+      if (!authenticatedUserId) {
+        const { data: { session } } = await supabase.auth.getSession();
+        authenticatedUserId = session?.user?.id;
+      }
+
+      if (!authenticatedUserId) {
+        throw new Error('Authentication session required to upload interview video. Please log in again.');
+      }
+
+      // Storage folder MUST equal auth.uid() for RLS check
+      const filename = `${authenticatedUserId}/${interview.id}_q${currentQuestion.number}.webm`;
 
       setUploadProgress(30);
 
       // Real Supabase Storage Upload
-      const supabase = getSupabase();
-        
-        const { data: uploadData, error: uploadErr } = await supabase.storage
-          .from('interview-videos')
-          .upload(filename, videoBlob, {
-            cacheControl: '3600',
-            upsert: true
-          });
+      const { data: uploadData, error: uploadErr } = await supabase.storage
+        .from('interview-videos')
+        .upload(filename, videoBlob, {
+          cacheControl: '3600',
+          upsert: true
+        });
 
-        if (uploadErr) throw uploadErr;
+      if (uploadErr) {
+        console.error('Supabase interview video upload failed:', uploadErr);
+        throw new Error(`Interview video upload failed: ${uploadErr.message}`);
+      }
 
-        setUploadProgress(60);
+      if (!uploadData || !uploadData.path) {
+        throw new Error('Supabase Storage did not return confirmation path for uploaded video.');
+      }
 
-        // Get public or signed URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('interview-videos')
-          .getPublicUrl(filename);
+      setUploadProgress(60);
 
-        videoUrl = publicUrl;
+      // Get public URL or proxy URL for playback
+      const { data: { publicUrl } } = supabase.storage
+        .from('interview-videos')
+        .getPublicUrl(filename);
+
+      videoUrl = publicUrl || `/api/interview/video?path=${encodeURIComponent(filename)}`;
 
         // Call Server API to transcribe & save
         const formData = new FormData();

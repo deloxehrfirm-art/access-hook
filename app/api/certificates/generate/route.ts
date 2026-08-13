@@ -178,13 +178,8 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     if (insertCertErr) {
-      console.warn('Error saving certificate to DB (RLS/constraint notice, returning generated cert fallback):', insertCertErr);
-      return NextResponse.json({
-        success: true,
-        certificate: certRecord,
-        isNew: true,
-        warning: 'Certificate generated successfully in fallback mode (Database RLS notice).'
-      });
+      console.error('Error saving certificate record to DB:', insertCertErr);
+      throw new Error(`Failed to save certificate to database: ${insertCertErr.message}`);
     }
 
     // 9. Update applicants table to store readiness_certificate_id and readiness_certificate_url
