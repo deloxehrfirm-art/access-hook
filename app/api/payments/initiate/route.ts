@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       console.error('Error recording pending purchase:', pErr);
     }
 
-    const flwPublicKey = (process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY || '')
+    const flwPublicKey = (process.env.NEXT_PUBLIC_FL_PUBLIC_KEY || '')
       .trim()
       .replace(/^["']|["']$/g, '');
 
